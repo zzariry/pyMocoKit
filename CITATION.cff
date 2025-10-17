@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+title: pyMocoKit
+authors:
+  - family-names: Zariry
+    given-names: Zakaria
+license: MIT
+version: 0.1.0
+message: "If you use this software, please cite the following preprint:"
+references:
+  - type: preprint
+    authors:
+      - family-names: Zariry
+        given-names: Zakaria
+      - family-names: et
+        given-names: al.
+
+    title: "An in-vivo approach to quantify intra-MRI head motion tracking accuracy: comparison of markerless optical tracking versus fat-navigators"
+    repository: "medRxiv"
+    year: 2025
+    doi: " 10.1101/2025.04.23.25326185"
+    url: "https://www.medrxiv.org/content/10.1101/2025.04.23.25326185v2"

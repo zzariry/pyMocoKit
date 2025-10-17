@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dll
+*.dylib
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.whl
+
+# Tests / outils
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# IDE / env
+.vscode/
+.idea/
+.venv/
+env/
+*.ipynb_checkpoints/
+
+# Données lourdes MRI (si jamais)
+*.nii*
+*.h5
+*.dat
+*.tar
+*.zip

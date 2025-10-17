@@ -1,0 +1,6 @@
+--extra-index-url https://download.pytorch.org/whl/cu113
+torch==1.12.0+cu113
+torchvision==0.13.0+cu113
+torchaudio==0.12.0+cu113
+cupy-cuda112==10.6.*
+torchkbnufft==1.4.0

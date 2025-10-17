@@ -1,0 +1,24 @@
+name: moco
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.10
+  - numpy=1.24.4
+  - scipy=1.13
+  - matplotlib=3.9
+  - h5py
+  - nibabel
+  - pip
+  - cudatoolkit=11.2
+  - cupy-cuda112=10.6.0
+  - tk
+  - pip:
+      - torch==1.12.0+cu113
+      - torchvision==0.13.0+cu113
+      - torchaudio==0.12.0+cu113
+      - torchkbnufft==1.4.0
+      - sigpy==0.1.26
+      - pygrappa==0.26.2
+      - twixtools==1.0
+      - tqdm==4.66.4

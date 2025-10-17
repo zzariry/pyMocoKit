@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mocokit"
+version = "0.1.0"
+description = "MRI rawdata reconstruction with motion correction"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Z. Z.", email = "you@example.com" }]
+requires-python = ">=3.10,<3.11"
+
+dependencies = [
+  "numpy>=1.24,<1.25",
+  "scipy>=1.10,<1.14",
+  "matplotlib>=3.9,<3.10",
+  "nibabel==5.2.1",
+  "twixtools==0.24",
+  "sigpy==0.1.26",
+  "pygrappa==0.26.2",
+  "torchkbnufft==1.4.0",
+  "tqdm>=4.66,<5",
+  "scikit-image>=0.20,<0.21",
+  "h5py>=3.11,<3.12",
+  "pytest>=8.4,<9"
+]
+
+[project.optional-dependencies]
+gpu = [
+  "torch==1.12.0+cu113",
+  "torchvision==0.13.0+cu113",
+  "torchaudio==0.12.0+cu113",
+  "cupy-cuda112==10.6.*"
+]
+
+dev = ["pytest>=8", "ruff>=0.5", "build", "twine"]
+
+[project.scripts]
+mocokit = "mocokit.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mocokit"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

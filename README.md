@@ -5,7 +5,7 @@ Includes: noise prewhitening, iPAT/GRAPPA, non-Cartesian gridding (KbNUFFT), PF/
 
 ## Installation
 
-### Option 1: conda (recommended)
+### Option 1: conda
 ```bash
 conda env create -f environment.yml
 conda activate moco

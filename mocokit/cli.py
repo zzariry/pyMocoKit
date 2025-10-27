@@ -63,12 +63,12 @@ def buildArgsParser():
 
 def main():
     
-    if True:
+    if False:  # For debugging purpose
         setup_logging(verbose=True)
         ## mocokit -i /home/mribbdev/rawdata/sub-201/ses-20221103/test -tcl -td /home/mribbdev/rawdata/sub-201/ses-20221103/test/Tcl_log -reverse -orig -v --cuda-visible-devices 0
-        Recon(working_path   = "/home/mribbdev/rawdata/sub-201/ses-20221103/test",
+        Recon(working_path   = "/home/mribbdev/rawdata/sub-201/ses-20221103/test_t1",
               Tcl            = True,
-              Tcl_dir        = "/home/mribbdev/rawdata/sub-201/ses-20221103/test/Tcl_log",
+              Tcl_dir        = "/home/mribbdev/rawdata/sub-201/ses-20221103/test_t1/Tcl_log",
               reverse_moco   = True,
               smooth_Tcl     = False,
               NavMOCO        = False,

@@ -203,6 +203,7 @@ def prepare_noise_adjustment(adjdata, NoiseScaleFactor):
 
     return calculate_prewhitening(noise, NoiseScaleFactor)
 
+
 def handle_geometry(geometry, ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list, np.ndarray, np.ndarray]:
 
     hostVox_mm  = np.asarray(geometry.voxelsize) ## in mm
@@ -269,6 +270,7 @@ def handle_geometry(geometry, ) -> tuple[np.ndarray, np.ndarray, np.ndarray, lis
 
     return hostVox_mm, sPosition_mm, sPosition_vox, dimspermute, FOV_rot, maffine
 
+
 def is_image_scan_embacs(mdh):
     from twixtools.mdh_def import is_flag_set
 
@@ -284,6 +286,7 @@ def is_image_scan_embacs(mdh):
     #         and not is_flag_set(mdh, 'PATREFANDIMASCAN'):
     #     return False
     return True
+
 
 def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool = False) -> DatBasics:
 
@@ -312,7 +315,9 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
 
     is_surfcoilcorrdata = [tmp.is_flag_set('RAWDATACORRECTION') for tmp in mdb]
 
-    eNx     = int(config['NCol'])
+    # eNx     = int(config['NCol'] if 'NCol' in config else config['NColMeas']) ## not accurate if RO asymm
+    eNx     = int(mdb[0].mdh.SamplesInScan)
+
     eNy     = int(config['NLinMeas'])
     eNz     = int(config['NParMeas'])
     eHrps   = np.array([eNx, eNy, eNz], np.uint32)
@@ -340,10 +345,13 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
                  f"Voxel size {'x'.join(map(lambda x: f'{x:.2f}', hostVox_mm))} mm^3, "
                  f"{nC} channels.")
 
-    ## PF factors
+    ## PF factors and assymetric echo
     pf          = _pf_factor(yaps)
+    assym_echo  = yaps['sKSpace'].get('ucAsymmetricEchoAllowed', 0)
 
     logging.info(f"Partial Fourier factors (RO, PE, 3D): {pf[0]}, {pf[1]}, {pf[2]}")
+    if assym_echo:
+        logging.info("Asymmetric echo acquisition detected on readout dimension.")
 
     # channels and scaling
     dfft, draw  = _parse_cfg(rawd['hdr'].get('Config_raw',''))
@@ -384,9 +392,10 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
     ticks_formated[dims_dict['cLin'], dims_dict['cPar'], dims_dict['cAve'], dims_dict['reacq']] = ticks
 
     # RO indices with PF
-    if pf[0] != 1.0 and not math.isclose(kcent[0], rHrps[0]//2, abs_tol=1): ## PF before kspace center
-        Col = np.arange(rHrps[0] - eHrps[0]//2, eHrps[0]//2)
-    else:
+    if (pf[0] != 1.0 or assym_echo) and not math.isclose(kcent[0], rHrps[0]//2, abs_tol=1): ## PF before kspace center
+        Col = np.arange(rHrps[0] - eHrps[0]//2, rHrps[0])
+
+    else: ## handle all other cases ?
         Col = np.arange(0, eHrps[0]//2)
     
     ## Handle cLin and cPar PF order 

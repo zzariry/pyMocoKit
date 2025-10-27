@@ -93,7 +93,7 @@ def prepare_acs(dat_basics : DatBasics, data_var : np.ndarray, iAve : int = 0) -
         ## Only using the first average for ACS
         ## TODO: maybe in future implemente a test on motion score to choose the best average for ACS
 
-        mask    = np.where(dat_basics.dims_dict['cAve'][dat_basics.ipatref]==iAve)
+        mask    = (dat_basics.dims_dict['cAve']==iAve) & (dat_basics.ipatref)
         acs_lin = dat_basics.dims_dict['cLin'][mask]
         acs_par = dat_basics.dims_dict['cPar'][mask]
 

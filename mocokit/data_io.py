@@ -415,7 +415,7 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
     nb_reflinesPE = int(yaps.get('sPat', {}).get('lRefLinesPE', 32) or 0)
     nb_reflines3D = int(yaps.get('sPat', {}).get('lRefLines3D', 32) or 0)
 
-    max_calib_shape = [40, nb_reflinesPE, nb_reflines3D]
+    max_calib_shape = [36, nb_reflinesPE, nb_reflines3D]
 
     ipatref     = np.zeros(len(mdb), np.bool_)
     if max(Arps) > 1:
@@ -429,14 +429,14 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
 
     if os.path.exists(os.path.join(working_dir, 'filled_ksp.npy')):
         logging.info("Reloading previously saved k-space for base data ! ")
-
-        data_set    = np.load(os.path.join(working_dir, 'filled_ksp.npy'))
+        # data_set    = np.load(os.path.join(working_dir, 'filled_ksp.npy'))
         ksp_exist["base"]   = True
 
     if os.path.exists(os.path.join(working_dir, 'filled_ksp_nomoco.npy')):
         logging.info("Reloading previously saved k-space for noMoco data ! ")
-        nomoco_ksp      = np.load(os.path.join(working_dir, 'filled_ksp_nomoco.npy'))
+        # nomoco_ksp      = np.load(os.path.join(working_dir, 'filled_ksp_nomoco.npy'))
         ksp_exist["nomoco"] = True
+
 
     if not ksp_exist["base"] or not ksp_exist["nomoco"]:
         ## prepare data
@@ -467,32 +467,35 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
 
     ################
     ## Use reacq data if exist to replace original data for the case of noMoco with reacq
-    if noMOCO and reverse_moco and not ksp_exist["nomoco"]:
-        if 'reacq' in dims_dict.keys():
+    if not ksp_exist["nomoco"] and noMOCO and reverse_moco and 'reacq' in dims_dict.keys():
             
-            logging.info("Reacq data found - preparing noMoco reacq kspace ! ")
+        logging.info("Reacq data found - preparing noMoco reacq kspace ! ")
 
-            mask = np.where(dims_dict['reacq'] == 1)
-            rLin = dims_dict['cLin'][mask]
-            rPar = dims_dict['cPar'][mask]
-            rAve = dims_dict['cAve'][mask]
+        mask = np.where(dims_dict['reacq'] == 1)
+        rLin = dims_dict['cLin'][mask]
+        rPar = dims_dict['cPar'][mask]
+        rAve = dims_dict['cAve'][mask]
 
-            nomoco_ksp = data_set[..., 0].copy()
-            nomoco_ksp[..., rLin, rPar, rAve] = data_set[..., rLin, rPar, rAve, 1]
+        nomoco_ksp = data_set[..., 0].copy()
+        nomoco_ksp[..., rLin, rPar, rAve] = data_set[..., rLin, rPar, rAve, 1]
+
+    elif ksp_exist["nomoco"]:
+        nomoco_ksp = np.load(os.path.join(working_dir, 'filled_ksp_nomoco.npy'))
+
+
+    if not ksp_exist["base"]:
+        ## Then squeeze reacq dimension and adapt lin/par/ave dict
+        data_set = data_set[..., 0]
+    else:
+        data_set = np.load(os.path.join(working_dir, 'filled_ksp.npy'))
     
-            ## Then squeeze reacq dimension and adapt lin/par/ave dict
-            data_set    = data_set[..., 0]
-            mask        = dims_dict['reacq'] == 0
-
-            dims_dict['cLin'] = dims_dict['cLin'][mask]
-            dims_dict['cPar'] = dims_dict['cPar'][mask]
-            dims_dict['cAve'] = dims_dict['cAve'][mask]
-
-            del dims_dict['reacq'], mask
-
-        else:
-            data_set.squeeze()
-            del dims_dict['reacq']
+    ## Remove reacq entries from dims_dict
+    mask                = dims_dict['reacq'] == 0
+    dims_dict['cLin']   = dims_dict['cLin'][mask]
+    dims_dict['cPar']   = dims_dict['cPar'][mask]
+    dims_dict['cAve']   = dims_dict['cAve'][mask]
+    
+    del dims_dict['reacq'], mask
     
     logging.info("Data preparation complete !")
 

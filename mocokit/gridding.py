@@ -68,10 +68,10 @@ def correct_kspace_and_save(
     nky = ky.copy()
     nkz = kz.copy()
 
-    if dat_basics.nAve > 1:
-        nkx = np.repeat(nkx[..., np.newaxis], dat_basics.nAve, axis=-1)
-        nky = np.repeat(nky[..., np.newaxis], dat_basics.nAve, axis=-1)
-        nkz = np.repeat(nkz[..., np.newaxis], dat_basics.nAve, axis=-1)
+    # if dat_basics.nAve > 1:
+    nkx = np.repeat(nkx[..., np.newaxis], dat_basics.nAve, axis=-1)
+    nky = np.repeat(nky[..., np.newaxis], dat_basics.nAve, axis=-1)
+    nkz = np.repeat(nkz[..., np.newaxis], dat_basics.nAve, axis=-1)
 
     logging.info("Computing Phase Translation and applying to kspace ...")
 
@@ -181,7 +181,7 @@ def correct_kspace_and_save(
 
             ## mask applied after kspace shift
             tmp[..., mask[-1]] += tmp_1[..., mask[-1]]
-            tmp[..., mask[-1]] *= 0.5
+            tmp[..., mask[-1]] /= 2
             tmp[..., ~mask[0]] = 0
         
         else:

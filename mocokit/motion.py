@@ -249,14 +249,14 @@ def prepare_tcl_data(working_path   : str,
     if mv2center:
         tmp_mat         = np.linalg.inv(final_matrix[dat_basics.kcent[1], dat_basics.kcent[2], 0, ...])
         logging.info("option mv2center selected - moving all matrices to kspace center !")
-        # final_matrix    = np.einsum('ijln,jk->ikln', final_matrix, tmp_mat)
-        final_matrix    = np.einsum('ij,...jk->...ik', tmp_mat, final_matrix)
+        final_matrix    = np.einsum('...ij,jk->...ik', final_matrix, tmp_mat)
+        # final_matrix    = np.einsum('ij,...jk->...ik', tmp_mat, final_matrix)
 
     else:
         tmp_mat         = np.linalg.inv(final_matrix[0, 0, 0, ...])
         logging.info("option mv2center not selected - moving all matrices to first line/acq !")
-        # final_matrix    = np.einsum('ijln,jk->ikln', final_matrix, tmp_mat)
-        final_matrix    = np.einsum('ij,...jk->...ik', tmp_mat, final_matrix)
+        final_matrix    = np.einsum('...ij,jk->...ik', final_matrix, tmp_mat)
+        # final_matrix    = np.einsum('ij,...jk->...ik', tmp_mat, final_matrix)
 
 
     ## Save matrices to apply later

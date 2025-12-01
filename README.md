@@ -1,7 +1,9 @@
 # pyMocoKit
 
-MRI reconstruction from Siemens `.dat` files with motion correction.
-Includes: noise prewhitening, iPAT/GRAPPA, non-Cartesian gridding (KbNUFFT), PF/POCS, coil combination, NIfTI export.
+MRI reconstruction pipeline with retrospective motion correction and option to reverse a prospectively applied correction.
+Supports raw data (Siemens `.dat` files) from MPRAGE and T2-SPACE sequences (an extension to diffusion EPI support is planned).
+
+Includes: noise prewhitening, OS removal, iPAT/GRAPPA, non-Cartesian gridding (KbNUFFT), PF/POCS, coil combination, NIfTI export.
 
 ## Installation
 

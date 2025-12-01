@@ -5,7 +5,7 @@ from .runtime import configure_runtime
 
 
 DESCRIPTION = """
-    Version Oct 04th, 2025 - by Z.Z :
+    Version Dec 01st, 2025 - by Z.Z :
     Pipeline to reconstruct MRI image with motion correction (TCL + GRAPPA + NUFFT)\n\n.
         Usage: 
     mocokit i /path/to/folder/dat 
@@ -40,6 +40,8 @@ def buildArgsParser():
                     help='Path to the nav (.mat) path for motions')
     p.add_argument("-orig", dest="noMOCO", action="store_true",
                     help='Output original image')
+    p.add_argument("-orig_noreacq", dest="no_reacq", action="store_true",
+                    help='Output noMOCO image without reacquisition - can only be used with -orig and -reverse')
     p.add_argument("-center", dest="mv2center", action="store_true",
                     help='Transform all motion estimates to kspace center sampling - tcl or nav moco must be on')
     p.add_argument("-no_pocs", dest="use_pocs", action="store_false",
@@ -84,10 +86,11 @@ def main():
     args    = buildArgsParser().parse_args()
 
     headless = True if args.headless else (False if args.no_headless else None)
+
     configure_runtime(
-        cuda_visible_devices=args.cuda,
-        headless=headless,
-        numpy_precision=args.numpy_precision)
+        cuda_visible_devices= args.cuda,
+        headless            = headless,
+        numpy_precision     = args.numpy_precision)
     
     setup_logging(verbose=args.verbose)
 
@@ -100,6 +103,7 @@ def main():
           NavMOCO        = args.NavMOCO,
           Nav_file       = args.Nav_file,
           noMOCO         = args.noMOCO,
+          no_reacq       = args.no_reacq,
           mv2center      = args.mv2center,
           use_pocs       = args.use_pocs,
           nthreads       = args.nthreads,

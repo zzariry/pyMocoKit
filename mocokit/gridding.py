@@ -21,6 +21,7 @@ def correct_kspace_and_save(
         var           : str,
         working_path  : str,
         is_nomoco     : bool = False,
+        no_reacq      : bool = False,
         use_pocs      : bool = True,
         device        : str = 'cuda:0'
         ) -> None:
@@ -32,8 +33,12 @@ def correct_kspace_and_save(
     is_nomoco   : whether to use the nomoco kspace or not
     device      : device to use for torch computations
     """
-    if is_nomoco:
+    if is_nomoco and not no_reacq:
         data = dat_basics.nomoco_ksp.copy()
+
+    elif is_nomoco and no_reacq:
+        data = dat_basics.data_set.copy()
+
     else:
         data = dat_basics.data_set.copy()
 
@@ -229,7 +234,7 @@ def correct_kspace_and_save(
     #     dat_basics.data_set     = im_data
 
     ## Save final image
-    coil_combine(dat_basics, im_data, var, working_path)
+    coil_combine(dat_basics, im_data, var, working_path, no_reacq=no_reacq)
 
 
 

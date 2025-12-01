@@ -7,14 +7,15 @@ import os
 
 
 ## RMSE coil combine
-def coil_combine(dat_basics : DatBasics, data : np.ndarray, var : str, working_path : str) -> None:
+def coil_combine(dat_basics : DatBasics, data : np.ndarray, var : str, working_path : str, no_reacq: bool) -> None:
 
     Coils_im    = np.abs(np.sqrt(np.sum(np.abs(data * np.conj(data)), axis=1, keepdims=False)))
 
     img         = scalingArray(Coils_im, np.min(Coils_im), np.max(Coils_im))
     img         = sigpy.resize(img, dat_basics.rHrps)[..., ::-1, ::-1]
 
-    saveImage(img.transpose(dat_basics.dimspermute), dat_basics.affinematrix, os.path.join(working_path, f"Reco_{var}.nii"))
+    saveImage(img.transpose(dat_basics.dimspermute), dat_basics.affinematrix, 
+              os.path.join(working_path, f"Reco_{var}" + ("_noreacq" if no_reacq and var == 'noMoco' else "") + ".nii"))
 
 
 

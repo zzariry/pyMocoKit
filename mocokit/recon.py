@@ -13,18 +13,19 @@ from .utils import plot_concat_curves
 from .gridding import correct_kspace_and_save
 from .ipat import parallel_imaging
 
-def Recon(working_path: str,
-        Tcl: bool = False,
-        Tcl_dir: Optional[str] = None,
-        reverse_moco: bool = False,
-        smooth_Tcl: bool = False,
-        NavMOCO: bool = False,
-        Nav_file: Optional[str] = None,
-        noMOCO: bool = True,
-        mv2center: bool = False,
-        use_pocs: bool = True,
-        nthreads: int = 1,
-        device: str = "cuda:0",) -> None:
+def Recon(working_path  : str,
+        Tcl             : bool = False,
+        Tcl_dir         : Optional[str] = None,
+        reverse_moco    : bool = False,
+        smooth_Tcl      : bool = False,
+        NavMOCO         : bool = False,
+        Nav_file        : Optional[str] = None,
+        noMOCO          : bool = True,
+        no_reacq        : bool = False,
+        mv2center       : bool = False,
+        use_pocs        : bool = True,
+        nthreads        : int = 10,
+        device          : str = "cuda:0",) -> None:
     """
     Main function to call for the reconstruction
     working_path    : path to the folder containing the .dat file
@@ -34,15 +35,23 @@ def Recon(working_path: str,
     smooth_Tcl      : whether to smooth the Tcl motion curves or not
     NavMOCO         : whether to use NavMOCO or not (not implemented yet)
     Nav_file        : path to the navigator file (not implemented yet)
-    noMOCO          : whether to use the noMOCO (original reacq data) or not
+    noMOCO          : whether to reconstruct the original data or not
+    no_reacq        : whether to reconstruct the original data without reacquisition (can only be used with noMOCO and reverse_moco)
     mv2center       : whether to move the motion to the center of kspace or not
     device          : device to use for the reconstruction (default: 'cuda:0')
     _debug_         : whether to use debug mode or not (more logging)
     """
+
+    if no_reacq:
+        assert Tcl, "no_reacq can only be used with noMOCO and reverse_moco set to True ! "
+
+        ## assume noMOCO and reverse_moco are True if no_reacq is True
+        noMOCO       = True
+        reverse_moco = True
+
     ## Load data
     dat_basics      = load_dat_basics(working_path, reverse_moco=reverse_moco, noMOCO=noMOCO)
     
-
     logging.info("Data loaded with shape: {} ! ".format(dat_basics.data_set.shape))
     
     ## Init moco_sys dict
@@ -83,8 +92,9 @@ def Recon(working_path: str,
     after_ipat = Queue()
 
     if max(dat_basics.Arps) != 1:
+
+        # first submit moco grappa if needed
         if not dat_basics.ksp_exist["base"]:
-            # first submit moco grappa if needed
             margs = {"dat_basics": dat_basics, "working_path": working_path,
                     "is_nomoco": False, "use_multithreading": use_multithreading,
                     "max_workers": nthreads}
@@ -98,14 +108,21 @@ def Recon(working_path: str,
                       "max_workers": nthreads}
             to_grappa.put(margs)
         
+        #  base kspace already exists --> send directly to MOCO regrid
         if dat_basics.ksp_exist["base"]:
-            #  base kspace already exists --> send directly to MOCO regrid
             for var in dat_basics.moco_sys:
                 if var != 'noMoco':
                     margs = {"dat_basics": dat_basics, "var" : var, "working_path": working_path,
                               "is_nomoco": False, "use_pocs": use_pocs, "device": device}
                     after_ipat.put(margs)
         
+            ## noMoco without reacquisition - only when reverse moco and tcl are on
+            ## use base kspace as ipat was done with reacquisition lines
+            if no_reacq:
+                margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
+                        "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
+                after_ipat.put(margs)
+
         if dat_basics.ksp_exist["nomoco"]:
             #  nomoco kspace already exists --> send directly to MOCO regrid
             margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
@@ -120,10 +137,17 @@ def Recon(working_path: str,
                           "is_nomoco": False, "use_pocs": use_pocs, "device": device}
                 after_ipat.put(margs)
 
+        ## noMoco without reacquisition - only when reverse moco and tcl are on
+        if no_reacq:
+            margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
+                    "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
+            after_ipat.put(margs)
+
         if noMOCO and reverse_moco:
             margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
                       "is_nomoco": True, "use_pocs": use_pocs, "device": device}
             after_ipat.put(margs)
+            
 
     def grappa_worker():
         while True:
@@ -132,13 +156,21 @@ def Recon(working_path: str,
             except:
                 break
 
-            res = parallel_imaging(**args)
+            res     = parallel_imaging(**args)
+
             if res == "moco":
                 for var in dat_basics.moco_sys:
                     if var != 'noMoco':         
                         margs = {"dat_basics": dat_basics, "var": var, "working_path": working_path,
                                   "is_nomoco": False, "use_pocs": use_pocs, "device": device}
                         after_ipat.put(margs)
+                    
+                if no_reacq:
+                    ## noMoco without reacquisition - only when reverse moco and tcl are on
+                    margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
+                            "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
+                    after_ipat.put(margs)
+
             else: ## nomoco
                 margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
                           "is_nomoco": True, "use_pocs": use_pocs, "device": device}
@@ -146,6 +178,7 @@ def Recon(working_path: str,
 
             to_grappa.task_done()
     
+
     if not to_grappa.empty():
         logging.info("Starting GRAPPA reconstruction ")
         threads     = []

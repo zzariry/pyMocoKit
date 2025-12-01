@@ -45,7 +45,8 @@ mocokit -i /path/to/folder/dat \
 - `-td`: TCL directory path
 - `-reverse`: Reverse motion correction
 - `-smooth`: Apply smoothing
-- `-orig`: Use original coordinates
+- `-orig`: Use original kspace (if -reverse option is used and reacquisition data exist, they'll be used!)
+- `-orig_noreacq`: Use original kspace (without reacquisition data; -reverse and -orig will be set to True!)
 - `-center`: Center reconstruction
 - `-device`: Specify compute device (e.g., `cuda:0`, `cpu`)
 - `--cuda-visible-devices`: Set visible CUDA devices

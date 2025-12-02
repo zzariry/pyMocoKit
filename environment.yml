@@ -1,4 +1,4 @@
-name: moco
+name: pymocokit
 channels:
   - conda-forge
   - pytorch

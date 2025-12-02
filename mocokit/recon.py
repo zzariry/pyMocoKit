@@ -200,7 +200,9 @@ def Recon(working_path  : str,
     
     ## After ipat - regrid with MOCO
     logging.info("Starting final kspace correction and saving ")
-    while not after_ipat.empty() or not to_grappa.empty() or (any(t.is_alive() for t in threads) if 'threads' in locals() else False):
+    while not after_ipat.empty() or \
+        not to_grappa.empty() or \
+            (any(t.is_alive() for t in threads) if 'threads' in locals() else False):
         try:
             args = after_ipat.get(timeout=1)
         except:

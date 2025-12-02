@@ -44,7 +44,7 @@ def buildArgsParser():
                     help='Output noMOCO image without reacquisition - can only be used with -orig and -reverse')
     p.add_argument("-center", dest="mv2center", action="store_true",
                     help='Transform all motion estimates to kspace center sampling - tcl or nav moco must be on')
-    p.add_argument("-no_pocs", dest="use_pocs", action="store_false",
+    p.add_argument("-no_pocs", dest="use_pocs", action="store_false", default=True,
                     help='Do not use POCS for PF 0 lines if any - default is to use POCS')
     p.add_argument("-nthreads", dest="nthreads", type=int, default=1,
                     help='Number of threads to use for parallel imaging (GRAPPA) - default is 1 (no multithreading)')
@@ -68,14 +68,15 @@ def main():
     if False:  # For debugging purpose
         setup_logging(verbose=True)
         ## mocokit -i /home/mribbdev/rawdata/sub-201/ses-20221103/test -tcl -td /home/mribbdev/rawdata/sub-201/ses-20221103/test/Tcl_log -reverse -orig -v --cuda-visible-devices 0
-        Recon(working_path   = "/home/mribbdev/rawdata/sub-201/ses-20221103/test_t1",
+        Recon(working_path   = "/home/mribbdev/rawdata/sub-201/ses-20221103/T1w_recon",
               Tcl            = True,
-              Tcl_dir        = "/home/mribbdev/rawdata/sub-201/ses-20221103/test_t1/Tcl_log",
+              Tcl_dir        = "/home/mribbdev/rawdata/sub-201/ses-20221103/T1w_recon/Tcl_log",
               reverse_moco   = True,
               smooth_Tcl     = False,
               NavMOCO        = False,
               Nav_file       = None,
               noMOCO         = True,
+              no_reacq       = True,
               mv2center      = False,
               use_pocs       = True,
               nthreads       = 20,

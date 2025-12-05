@@ -381,6 +381,7 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
 
     cAve            = dims_dict.get('cAve', None)
     nAve            = int(cAve.max()) + 1 if cAve is not None and len(cAve) > 0 else 1
+    
     reacq_max       = int(reacq_data.max()) + 1 if any(reacq_data) else 1
 
     logging.info(f"Number of Averages: {nAve},"

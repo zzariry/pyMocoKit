@@ -509,7 +509,16 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
 
     else:
 
-        nomoco_ksp = data_set = data_set[..., 0]
+        if not ksp_exist["base"]:
+            ## Then squeeze reacq dimension and adapt lin/par/ave dict
+            data_set = data_set[..., 0]
+
+        else:
+            data_set = np.load(os.path.join(working_dir, 'filled_ksp.npy'))
+            
+        del dims_dict['reacq']
+
+        nomoco_ksp = data_set
     
     logging.info("Data preparation complete !")
 

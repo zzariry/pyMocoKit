@@ -91,62 +91,104 @@ def Recon(working_path  : str,
     to_grappa  = Queue()
     after_ipat = Queue()
 
-    if max(dat_basics.Arps) != 1:
+    if dat_basics.have_reacq:
+        if max(dat_basics.Arps) != 1:
 
-        # first submit moco grappa if needed
-        if not dat_basics.ksp_exist["base"]:
-            margs = {"dat_basics": dat_basics, "working_path": working_path,
-                    "is_nomoco": False, "use_multithreading": use_multithreading,
-                    "max_workers": nthreads}
+            # first submit moco grappa if needed
+            if not dat_basics.ksp_exist["base"]:
+                margs = {"dat_basics": dat_basics, "working_path": working_path,
+                        "is_nomoco": False, "use_multithreading": use_multithreading,
+                        "max_workers": nthreads}
 
-            to_grappa.put(margs)
-        
-        # second submit noMoco grappa if needed
-        if noMOCO and reverse_moco and not dat_basics.ksp_exist["nomoco"]:
-            margs = {"dat_basics": dat_basics, "working_path": working_path,
-                      "is_nomoco": True, "use_multithreading": use_multithreading,
-                      "max_workers": nthreads}
-            to_grappa.put(margs)
-        
-        #  base kspace already exists --> send directly to MOCO regrid
-        if dat_basics.ksp_exist["base"]:
+                to_grappa.put(margs)
+            
+            # second submit noMoco grappa if needed
+            if noMOCO and reverse_moco and not dat_basics.ksp_exist["nomoco"]:
+                margs = {"dat_basics": dat_basics, "working_path": working_path,
+                        "is_nomoco": True, "use_multithreading": use_multithreading,
+                        "max_workers": nthreads}
+                to_grappa.put(margs)
+            
+            #  base kspace already exists --> send directly to MOCO regrid
+            if dat_basics.ksp_exist["base"]:
+                for var in dat_basics.moco_sys:
+                    if var != 'noMoco':
+                        margs = {"dat_basics": dat_basics, "var" : var, "working_path": working_path,
+                                "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+                        after_ipat.put(margs)
+            
+                ## noMoco without reacquisition - only when reverse moco and tcl are on
+                ## use base kspace as ipat was done with reacquisition lines
+                if no_reacq:
+                    margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
+                            "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
+                    after_ipat.put(margs)
+
+            if dat_basics.ksp_exist["nomoco"]:
+                #  nomoco kspace already exists --> send directly to MOCO regrid
+                margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
+                        "is_nomoco": True, "use_pocs": use_pocs, "device": device}
+                after_ipat.put(margs)
+
+        else:
+            #  no iPAT --> send directly to MOCO regrid
             for var in dat_basics.moco_sys:
                 if var != 'noMoco':
                     margs = {"dat_basics": dat_basics, "var" : var, "working_path": working_path,
-                              "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+                            "is_nomoco": False, "use_pocs": use_pocs, "device": device}
                     after_ipat.put(margs)
-        
+
             ## noMoco without reacquisition - only when reverse moco and tcl are on
-            ## use base kspace as ipat was done with reacquisition lines
             if no_reacq:
                 margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
                         "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
                 after_ipat.put(margs)
 
-        if dat_basics.ksp_exist["nomoco"]:
-            #  nomoco kspace already exists --> send directly to MOCO regrid
-            margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
-                      "is_nomoco": True, "use_pocs": use_pocs, "device": device}
-            after_ipat.put(margs)
-
-    else:
-        #  no iPAT --> send directly to MOCO regrid
-        for var in dat_basics.moco_sys:
-            if var != 'noMoco':
-                margs = {"dat_basics": dat_basics, "var" : var, "working_path": working_path,
-                          "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+            if noMOCO and reverse_moco:
+                margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
+                        "is_nomoco": True, "use_pocs": use_pocs, "device": device}
                 after_ipat.put(margs)
+    else:
+        # no reacquisition lines present in the data
+        # run grappa if needed on base and use for all reconstructions
+        if max(dat_basics.Arps) != 1:
 
-        ## noMoco without reacquisition - only when reverse moco and tcl are on
-        if no_reacq:
-            margs = {"dat_basics": dat_basics, "var" : 'noMoco', "working_path": working_path,
-                    "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
-            after_ipat.put(margs)
+            # first submit moco grappa if needed
+            if not dat_basics.ksp_exist["base"]:
+                margs = {"dat_basics": dat_basics, "working_path": working_path,
+                        "is_nomoco": False, "use_multithreading": use_multithreading,
+                        "max_workers": nthreads}
 
-        if noMOCO and reverse_moco:
-            margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
-                      "is_nomoco": True, "use_pocs": use_pocs, "device": device}
-            after_ipat.put(margs)
+                to_grappa.put(margs)
+            
+            #  base kspace already exists --> send directly to MOCO regrid
+            if dat_basics.ksp_exist["base"]:
+                for var in dat_basics.moco_sys:
+                    if var != 'noMoco':
+                        margs = {"dat_basics": dat_basics, "var" : var, "working_path": working_path,
+                                "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+                        after_ipat.put(margs)
+
+                ## nomoco kspace is the same as base kspace as no reacq lines
+                if noMOCO:
+                    ## 
+                    margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
+                            "is_nomoco": True, "no_reacq": no_reacq, "use_pocs": use_pocs, "device": device}
+                    after_ipat.put(margs)
+        
+        else:
+            #  no iPAT --> send directly to MOCO regrid
+            for var in dat_basics.moco_sys:
+                if var != 'noMoco':
+                    margs = {"dat_basics": dat_basics, "var" : var, "working_path": working_path,
+                            "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+                    after_ipat.put(margs)
+            
+            if noMOCO:
+                ## 
+                margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
+                        "is_nomoco": True, "no_reacq": no_reacq, "use_pocs": use_pocs, "device": device}
+                after_ipat.put(margs)
             
 
     def grappa_worker():
@@ -158,23 +200,40 @@ def Recon(working_path  : str,
 
             res     = parallel_imaging(**args)
 
-            if res == "moco":
-                for var in dat_basics.moco_sys:
-                    if var != 'noMoco':         
-                        margs = {"dat_basics": dat_basics, "var": var, "working_path": working_path,
-                                  "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+            if dat_basics.have_reacq:
+                if res == "moco":
+                    for var in dat_basics.moco_sys:
+                        if var != 'noMoco':         
+                            margs = {"dat_basics": dat_basics, "var": var, "working_path": working_path,
+                                    "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+                            after_ipat.put(margs)
+                        
+                    if no_reacq:
+                        ## noMoco without reacquisition - only when reverse moco and tcl are on
+                        margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
+                                "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
                         after_ipat.put(margs)
-                    
-                if no_reacq:
+
+                else: ## nomoco
+                    margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
+                            "is_nomoco": True, "use_pocs": use_pocs, "device": device}
+                    after_ipat.put(margs)
+            
+            else:
+                # dat_basics.nomoco_ksp = dat_basics.data_set
+
+                ## res will always be "moco" as no reacq lines
+                for var in dat_basics.moco_sys:
+                    if var != 'noMoco':
+                        margs = {"dat_basics": dat_basics, "var": var, "working_path": working_path,
+                                "is_nomoco": False, "use_pocs": use_pocs, "device": device}
+                        after_ipat.put(margs)
+
+                if noMOCO:
                     ## noMoco without reacquisition - only when reverse moco and tcl are on
                     margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
-                            "is_nomoco": True, "no_reacq": True, "use_pocs": use_pocs, "device": device}
+                            "is_nomoco": True, "no_reacq": no_reacq, "use_pocs": use_pocs, "device": device}
                     after_ipat.put(margs)
-
-            else: ## nomoco
-                margs = {"dat_basics": dat_basics, "var": 'noMoco', "working_path": working_path,
-                          "is_nomoco": True, "use_pocs": use_pocs, "device": device}
-                after_ipat.put(margs)
 
             to_grappa.task_done()
     

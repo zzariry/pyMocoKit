@@ -378,16 +378,21 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
 
     if any(reacq_data):
         dims_dict['reacq'] = reacq_data
+    else:
+        dims_dict['reacq'] = np.zeros(1, np.uint16)
 
     cAve            = dims_dict.get('cAve', None)
     nAve            = int(cAve.max()) + 1 if cAve is not None and len(cAve) > 0 else 1
     
-    reacq_max       = int(reacq_data.max()) + 1 if any(reacq_data) else 1
+    reacq_max       = int(dims_dict['reacq'].max()) + 1
+
+    have_reacq      = (len(dims_dict['reacq']) > 1 and dims_dict['reacq'].max() > 0)
 
     logging.info(f"Number of Averages: {nAve},"
                     f" Number of Reacquisitions: {(np.count_nonzero(reacq_data)+1)} Readout lines.")
 
     ticks           = np.array([tmp.mdh.TimeStamp*2.5 for tmp in mdb], np.int64)
+
     ## format timestamps
     ticks_formated  = np.zeros((rHrps[1], rHrps[2], nAve, reacq_max), np.uint64)
 
@@ -434,12 +439,12 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
         # data_set    = np.load(os.path.join(working_dir, 'filled_ksp.npy'))
         ksp_exist["base"]   = True
 
-    if os.path.exists(os.path.join(working_dir, 'filled_ksp_nomoco.npy')):
+    if os.path.exists(os.path.join(working_dir, 'filled_ksp_nomoco.npy')) or not have_reacq:
         logging.info("Reloading previously saved k-space for noMoco data ! ")
         # nomoco_ksp      = np.load(os.path.join(working_dir, 'filled_ksp_nomoco.npy'))
         ksp_exist["nomoco"] = True
 
-
+        
     if not ksp_exist["base"] or not ksp_exist["nomoco"]:
         ## prepare data
         ## TODO: Implement POCS for RO asymmetric 
@@ -469,35 +474,42 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
 
     ################
     ## Use reacq data if exist to replace original data for the case of noMoco with reacq
-    if not ksp_exist["nomoco"] and noMOCO and reverse_moco and 'reacq' in dims_dict.keys():
-            
-        logging.info("Reacq data found - preparing noMoco reacq kspace ! ")
+    if have_reacq:
+        
+        if not ksp_exist["nomoco"] and noMOCO and reverse_moco:
+                
+            logging.info("Reacq data found - preparing noMoco reacq kspace ! ")
 
-        mask = np.where(dims_dict['reacq'] == 1)
-        rLin = dims_dict['cLin'][mask]
-        rPar = dims_dict['cPar'][mask]
-        rAve = dims_dict['cAve'][mask]
+            mask = np.where(dims_dict['reacq'] == 1)
+            rLin = dims_dict['cLin'][mask]
+            rPar = dims_dict['cPar'][mask]
+            rAve = dims_dict['cAve'][mask]
 
-        nomoco_ksp = data_set[..., 0].copy()
-        nomoco_ksp[..., rLin, rPar, rAve] = data_set[..., rLin, rPar, rAve, 1]
+            nomoco_ksp = data_set[..., 0].copy()
+            nomoco_ksp[..., rLin, rPar, rAve] = data_set[..., rLin, rPar, rAve, 1]
 
-    elif ksp_exist["nomoco"]:
-        nomoco_ksp = np.load(os.path.join(working_dir, 'filled_ksp_nomoco.npy'))
+        elif ksp_exist["nomoco"]:
+            nomoco_ksp = np.load(os.path.join(working_dir, 'filled_ksp_nomoco.npy'))
 
 
-    if not ksp_exist["base"]:
-        ## Then squeeze reacq dimension and adapt lin/par/ave dict
-        data_set = data_set[..., 0]
+        if not ksp_exist["base"]:
+            ## Then squeeze reacq dimension and adapt lin/par/ave dict
+            data_set = data_set[..., 0]
+
+        else:
+            data_set = np.load(os.path.join(working_dir, 'filled_ksp.npy'))
+        
+        ## Remove reacq entries from dims_dict
+        mask                = dims_dict['reacq'] == 0
+        dims_dict['cLin']   = dims_dict['cLin'][mask]
+        dims_dict['cPar']   = dims_dict['cPar'][mask]
+        dims_dict['cAve']   = dims_dict['cAve'][mask]
+    
+        del dims_dict['reacq'], mask
+
     else:
-        data_set = np.load(os.path.join(working_dir, 'filled_ksp.npy'))
-    
-    ## Remove reacq entries from dims_dict
-    mask                = dims_dict['reacq'] == 0
-    dims_dict['cLin']   = dims_dict['cLin'][mask]
-    dims_dict['cPar']   = dims_dict['cPar'][mask]
-    dims_dict['cAve']   = dims_dict['cAve'][mask]
-    
-    del dims_dict['reacq'], mask
+
+        nomoco_ksp = data_set = data_set[..., 0]
     
     logging.info("Data preparation complete !")
 
@@ -522,5 +534,6 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
                      ksp_exist      = ksp_exist,
                      max_calib_shape= max_calib_shape,
                      ipatref        = ipatref,
-                     nomoco_ksp     = nomoco_ksp
+                     nomoco_ksp     = nomoco_ksp,
+                     have_reacq     = have_reacq
                      )

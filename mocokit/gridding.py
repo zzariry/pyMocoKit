@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import logging
 from time import time
@@ -236,6 +237,14 @@ def correct_kspace_and_save(
     ## Save final image
     coil_combine(dat_basics, im_data, var, working_path, no_reacq=no_reacq)
 
+    if is_nomoco and no_reacq and not dat_basics.have_reacq:
+        ## if it"s the case, then image saved is Reco_noMoco_noReacq
+        ## now save also the Reco_noMoco image
+        coil_combine(dat_basics, im_data, var, working_path, no_reacq=False)
+        
+        ## and save a txt file to inform that no reacq lines were present
+        with open(os.path.join(working_path, 'NO_REACQ_FOUND.txt'), 'w') as f:
+            f.write('No reacquisition lines were found in the input data. The noMoco_noReacq image is identical to the noMoco image.\n')
 
 
 ## Apodization function

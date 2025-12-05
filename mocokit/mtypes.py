@@ -37,6 +37,7 @@ class DatBasics:
     ticks_formated  : np.ndarray
     max_calib_shape : np.ndarray
     ksp_exist       : dict
+    have_reacq      : bool | None = False
     ipatref         : list | None = None
     moco_sys        : dict | None = None
     separate_nomoco : bool | None = False

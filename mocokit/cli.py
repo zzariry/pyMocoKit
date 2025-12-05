@@ -65,7 +65,7 @@ def buildArgsParser():
 
 def main():
     
-    if False:  # For debugging purpose
+    if True:  # For debugging purpose
         setup_logging(verbose=True)
         ## mocokit -i /home/mribbdev/rawdata/sub-201/ses-20221103/test -tcl -td /home/mribbdev/rawdata/sub-201/ses-20221103/test/Tcl_log -reverse -orig -v --cuda-visible-devices 0
         Recon(working_path   = "/home/mribbdev/rawdata/sub-201/ses-20221103/T2w_recon_2",

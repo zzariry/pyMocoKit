@@ -379,8 +379,9 @@ def load_dat_basics(working_dir: str, reverse_moco: bool = False, noMOCO: bool =
     if any(reacq_data):
         dims_dict['reacq'] = reacq_data
 
-    nAve            = max(dims_dict['cAve'])+1 if len(dims_dict['cAve']) else 1
-    reacq_max       = max(dims_dict['reacq'])+1 if len(dims_dict['reacq']) else 1
+    cAve            = dims_dict.get('cAve', None)
+    nAve            = int(cAve.max()) + 1 if cAve is not None and len(cAve) > 0 else 1
+    reacq_max       = int(reacq_data.max()) + 1 if any(reacq_data) else 1
 
     logging.info(f"Number of Averages: {nAve},"
                     f" Number of Reacquisitions: {(np.count_nonzero(reacq_data)+1)} Readout lines.")

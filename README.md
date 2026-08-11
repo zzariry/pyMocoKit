@@ -50,8 +50,9 @@ mocokit -i /path/to/folder/dat \
 - `-center`: Center reconstruction
 - `-device`: Specify compute device (e.g., `cuda:0`, `cpu`)
 - `--cuda-visible-devices`: Set visible CUDA devices
+- `-nthreads` : Set number of threads to use in GRAPPA reconstruction (default: 1)
 - `--headless`: Run without GUI
-- `--numpy-precision`: Set numerical precision
+- `--numpy-precision`: Set numerical precision (default: 6)
 - `-v`: Verbose output
 
 ## Requirements

@@ -63,5 +63,5 @@ mocokit -i /path/to/folder/dat \
 ## Citation
 If you use this repository, please cite:
 
-Z. Zariry, F. Lamberton, R. Frost, et al., “ Intra-MRI Head Motion Tracking and Correction: A Quantitative In Vivo Evaluation Framework,” NMR in Biomedicine 39, no. 9 (2026): e70368, https://doi.org/10.1002/nbm.70368.
+>Z. Zariry, F. Lamberton, R. Frost, et al., “ Intra-MRI Head Motion Tracking and Correction: A Quantitative In Vivo Evaluation Framework,” >NMR in Biomedicine 39, no. 9 (2026): e70368, https://doi.org/10.1002/nbm.70368.
 

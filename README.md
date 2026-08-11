@@ -63,7 +63,5 @@ mocokit -i /path/to/folder/dat \
 ## Citation
 If you use this repository, please cite:
 
-> Zariry Z, Lamberton F, Frost R, Gaass T, Troalen T, Rayson H, Slipsager JM, Richard N, van der Kouwe A, Bonaiuto J, Hiba B. *An in-vivo approach to quantify intra-MRI head motion tracking accuracy: comparison of markerless optical tracking versus fat-navigators.*
-> **medRxiv** [Preprint]. 2025 Jul 17:2025.04.23. 
-> DOI: [10.1101/2025.04.23.25326185] (https://www.medrxiv.org/content/10.1101/2025.04.23.25326185v2)
+Z. Zariry, F. Lamberton, R. Frost, et al., “ Intra-MRI Head Motion Tracking and Correction: A Quantitative In Vivo Evaluation Framework,” NMR in Biomedicine 39, no. 9 (2026): e70368, https://doi.org/10.1002/nbm.70368.
 
